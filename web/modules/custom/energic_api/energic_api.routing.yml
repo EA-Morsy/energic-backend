@@ -1,0 +1,28 @@
+energic_api.landing_page:
+  path: '/api/landing-page'
+  defaults:
+    _controller: '\Drupal\energic_api\Controller\EnergicApiController::landingPage'
+    _title: 'Landing Page API'
+  requirements:
+    _permission: 'access content'
+about_us:
+  path: '/api/about-us'
+  defaults:
+    _controller: '\Drupal\energic_api\Controller\AboutUsController::aboutUs'
+    _title: 'About Us API'
+  requirements:
+    _permission: 'access content'
+contact_us:
+  path: '/api/contact-us'
+  defaults:
+    _controller: '\Drupal\energic_api\Controller\ContactUsController::contactUs'
+    _title: 'Contact Us API'
+  requirements:
+    _permission: 'access content'
+solutions:
+  path: '/api/solutions'
+  defaults:
+    _controller: '\Drupal\energic_api\Controller\SolutionsController::solutions'
+    _title: 'Solutions API'
+  requirements:
+    _permission: 'access content'

@@ -1,0 +1,5 @@
+name: Energic Contact
+type: module
+description: Provides a contact us API endpoint.
+core_version_requirement: ^11
+package: Custom

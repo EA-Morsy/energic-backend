@@ -1,0 +1,7 @@
+name: Energic API
+type: module
+description: Provides custom API endpoints for the Energic landing page.
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies:
+  - drupal:node

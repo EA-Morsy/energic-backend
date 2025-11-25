@@ -1,0 +1,8 @@
+energic_contact.api:
+  path: '/api/contact'
+  defaults:
+    _controller: '\Drupal\energic_contact\Controller\ContactApiController::submit'
+    _title: 'Contact API'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
