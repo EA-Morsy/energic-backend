@@ -26,3 +26,10 @@ solutions:
     _title: 'Solutions API'
   requirements:
     _permission: 'access content'
+chargex_solution:
+  path: '/api/chargex-solutions'
+  defaults:
+    _controller: '\Drupal\energic_api\Controller\ChargexSolutionController::chargexSolutions'
+    _title: 'ChargeX Solutions API'
+  requirements:
+    _permission: 'access content'

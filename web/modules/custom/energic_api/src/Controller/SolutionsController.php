@@ -26,7 +26,7 @@ class SolutionsController extends ControllerBase {
     }
 
     $sections = [];
-
+https://energic-backend.ddev.site/
     if ($node->hasField('field_solution_sections')) {
       foreach ($node->get('field_solution_sections')->referencedEntities() as $section) {
         $type = $section->bundle();
@@ -43,7 +43,17 @@ class SolutionsController extends ControllerBase {
           $sections['integrated_brands_section'] = $this->getIntegratedBrandsSectionData($section);
         }elseif ($type === 'our_solutions_section') {
           $sections['our_solutions_section'] = $this->getOurSolutionsSectionData($section);
+        }elseif ($type === 'energic_control_platform_section') {
+          $sections['energic_control_platform_section'] = 
+            $this->getEnergicControlPlatformSectionData($section);
+        }elseif ($type === 'energic_control_benefits_section') {
+          $sections['energic_control_benefits_section'] =
+            $this->getBenefitsSectionData($section);
+        }elseif ($type === 'energic_control_demo_section') {
+          $sections['energic_control_demo_section'] =
+            $this->getEnergicControlDemoSectionData($section);
         }
+        
 
       }
     }
@@ -74,10 +84,21 @@ class SolutionsController extends ControllerBase {
         
     }
 
+     // ✅ جلب عناصر الـ hero list لو موجودة
+     $heroList = [];
+     if ($section->hasField('field_solution_hero_list') && !$section->get('field_solution_hero_list')->isEmpty()) {
+         foreach ($section->get('field_solution_hero_list')->referencedEntities() as $item) {
+             if ($item->hasField('field_hero_list_text') && !$item->get('field_hero_list_text')->isEmpty()) {
+                 $heroList[] = $item->get('field_hero_list_text')->value;
+             }
+         }
+     }
     $data = [
       'title' => $section->get('field_solution_hero_title')->value ?? '',
       'subtitle' => $section->get('field_solution_hero_subtitle')->value ?? '',
       'image' => $imageUrl,
+      'hero_list' => $heroList // ✅ ضيفنا البيانات الجديدة هنا
+
     ];
 
     return array_filter($data, fn($v) => $v !== null && $v !== '' && $v !== []);
@@ -104,6 +125,7 @@ private function getSolutionInfoSectionData($section) {
   
     $data = [
       'title' => $section->get('field_solution_info_title')->value ?? '',
+      'subtitle' => $section->get('field_solution_info_subtitle')->value ?? '',
       'description' => $section->get('field_solution_info_description')->value ?? '',
       'quote' => $section->get('field_solution_quote')->value ?? '',
       'image' => $imageUrl,
@@ -247,4 +269,142 @@ private function getOurSolutionsSectionData($section) {
 
   return $data;
 }
+
+
+
+
+/**
+ * 🟦 Energic Control Platform Section
+ */
+private function getEnergicControlPlatformSectionData($section) {
+  
+  $imageUrl = null;
+  if ($section->hasField('field_energic_platform_image') && !$section->get('field_energic_platform_image')->isEmpty()) {
+      $media = $section->get('field_energic_platform_image')->entity;
+      if ($media && $media->hasField('field_media_image') && !$media->get('field_media_image')->isEmpty()) {
+        $file = $media->get('field_media_image')->entity;
+        if ($file instanceof \Drupal\file\Entity\File) {
+          $imageUrl = $this->fileUrlGenerator->generateAbsoluteString($file->getFileUri());
+        }
+      }
+      
+  }
+  $data = [
+    'title' => $section->get('field_energic_platform_title')->value ?? '',
+    'subtitle' => $section->get('field_energic_platform_subtitle')->value ?? '',
+    'description' => $section->get('field_energic_platform_desc')->value ?? '',
+    'image' =>$imageUrl,
+    'features' => []
+    
+  ];
+
+  // 🔵 Features
+  if ($section->hasField('field_energic_platform_features') && !$section->get('field_energic_platform_features')->isEmpty()) {
+    foreach ($section->get('field_energic_platform_features')->referencedEntities() as $feature) {
+
+      // 🔹 Handle icon image
+      $icon_url = null;
+      if ($feature->hasField('field_energic_feature_icon') && !$feature->get('field_energic_feature_icon')->isEmpty()) {
+        $media = $feature->get('field_energic_feature_icon')->entity;
+
+        if ($media && $media->hasField('field_media_image')) {
+          $image_file = $media->get('field_media_image')->entity;
+          if ($image_file) {
+            $icon_url = $this->fileUrlGenerator->generateAbsoluteString($image_file->getFileUri());
+          }
+        }
+      }
+
+      // Push data
+      $data['features'][] = [
+        'title' => $feature->get('field_energic_feature_title')->value ?? '',
+        'description' => $feature->get('field_energic_feature_desc')->value ?? '',
+        'icon' => $icon_url,
+      ];
+    }
+  }
+
+  return array_filter($data, fn($v) => $v !== null && $v !== '' && $v !== []);
+}
+
+
+private function getBenefitsSectionData($section) {
+  $data = [
+    'title' => $section->get('field_energic_benefits_title')->value ?? '',
+    'short_items' => [],
+    'detailed_items' => [],
+  ];
+
+  // -----------------------------------
+  // 🔹 Short Items (Text Only)
+  // -----------------------------------
+  if ($section->hasField('field_benefits_short_items') && !$section->get('field_benefits_short_items')->isEmpty()) {
+    foreach ($section->get('field_benefits_short_items')->referencedEntities() as $item) {
+      $data['short_items'][] = [
+        'text' => $item->get('field_short_item_text')->value ?? '',
+      ];
+    }
+  }
+
+  // -----------------------------------
+  // 🔹 Detailed Items (Title + Desc + Icon)
+  // -----------------------------------
+  if ($section->hasField('field_benefits_detailed_items') && !$section->get('field_benefits_detailed_items')->isEmpty()) {
+    foreach ($section->get('field_benefits_detailed_items')->referencedEntities() as $item) {
+
+      $icon_url = '';
+
+      // 🖼️ Load icon (Media → Image)
+      if ($item->hasField('field_benefits_list_icon') && !$item->get('field_benefits_list_icon')->isEmpty()) {
+        $media = $item->get('field_benefits_list_icon')->entity;
+        if ($media && $media->hasField('field_media_image') && !$media->get('field_media_image')->isEmpty()) {
+          $file = $media->get('field_media_image')->entity;
+          if ($file instanceof \Drupal\file\Entity\File) {
+            $icon_url = $this->fileUrlGenerator->generateAbsoluteString($file->getFileUri());
+          }
+        }
+      }
+
+      $data['detailed_items'][] = [
+        'title'       => $item->get('field_benefits_list_title')->value ?? '',
+        'description' => $item->get('field_benefits_list_description')->value ?? '',
+        'icon'        => $icon_url,
+      ];
+    }
+  }
+
+  return $data;
+}
+
+
+private function getEnergicControlDemoSectionData($section) {
+  $data = [
+    'title' => $section->get('field_energic_demo_title')->value ?? '',
+    'subtitle' => $section->get('field_energic_demo_subtitle')->value ?? '',
+    'description' => $section->get('field_energic_demo_description')->value ?? '',
+    'booking_demo_link' => '',
+    'talk_to_expert_link' => '',
+  ];
+
+  // 🔗 Booking Demo Link
+  if ($section->hasField('field_energic_booking_demo') && !$section->get('field_energic_booking_demo')->isEmpty()) {
+    $link = $section->get('field_energic_booking_demo')->first();
+    $data['booking_demo_link'] = [
+      'url' => $link->getUrl()->toString(),
+      'title' => $link->title ?? '',
+    ];
+  }
+
+  // 🔗 Talk To Expert Link
+  if ($section->hasField('field_talk_to_expert') && !$section->get('field_talk_to_expert')->isEmpty()) {
+    $link = $section->get('field_talk_to_expert')->first();
+    $data['talk_to_expert_link'] = [
+      'url' => $link->getUrl()->toString(),
+      'title' => $link->title ?? '',
+    ];
+  }
+
+  return array_filter($data, fn($v) => $v !== null && $v !== '' && $v !== []);
+}
+
 }
