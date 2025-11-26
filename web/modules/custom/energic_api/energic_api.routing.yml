@@ -33,3 +33,10 @@ chargex_solution:
     _title: 'ChargeX Solutions API'
   requirements:
     _permission: 'access content'
+white_label_solution:
+  path: '/api/white-label-solutions'
+  defaults:
+    _controller: '\Drupal\energic_api\Controller\WhiteLabelSolutionController::whiteLabelSolutions'
+    _title: 'White Label Solutions API'
+  requirements:
+    _permission: 'access content'

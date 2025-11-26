@@ -45,6 +45,14 @@ class ChargexSolutionController extends ControllerBase {
         elseif ($type === 'chargex_app_section') {
           $sections['chargex_app_section'] = $this->getChargexAppSection($section);
         }
+        elseif ($type === 'chargex_performance_section') {
+            $sections['chargex_performance_section'] =
+              $this->getChargexPerformanceSectionData($section);
+        }
+        elseif ($type === 'chargex_app_promotion_section') {
+            $sections['chargex_app_promotion_section'] = $this->getChargexAppPromotionSectionData($section);
+          }
+          
       }
     }
 
@@ -174,4 +182,72 @@ class ChargexSolutionController extends ControllerBase {
     return array_filter($data, fn($v) => $v !== null && $v !== '' && $v !== []);
 
   }
+
+
+  private function getChargexPerformanceSectionData($section) {
+    $data = [
+      'title'       => $section->get('field_chargex_performance_title')->value ?? '',
+      'description' => $section->get('field_chargex_performance_desc')->value ?? '',
+      'items'       => $section->get('field_chargex_performance_items')->value ?? '',
+      'images'      => [],
+    ];
+  
+    // 🖼️ Multiple Performance Images
+    if (
+      $section->hasField('field_chargex_performance_images') &&
+      !$section->get('field_chargex_performance_images')->isEmpty()
+    ) {
+      foreach ($section->get('field_chargex_performance_images') as $mediaRef) {
+        $media = $mediaRef->entity;
+  
+        if ($media && $media->hasField('field_media_image') && !$media->get('field_media_image')->isEmpty()) {
+          $file = $media->get('field_media_image')->entity;
+  
+          if ($file instanceof \Drupal\file\Entity\File) {
+            $data['images'][] = $this->fileUrlGenerator->generateAbsoluteString($file->getFileUri());
+          }
+        }
+      }
+    }
+  
+    return $data;
+  }
+  
+
+
+  private function getChargexAppPromotionSectionData($section) {
+    $title = $section->get('field_app_promotion_title')->value ?? '';
+    $description = $section->get('field_app_promotion_description')->value ?? '';
+
+    // زر تحميل التطبيق
+    $download_app_button = null;
+    if ($section->hasField('field_download_app_button') && !$section->get('field_download_app_button')->isEmpty()) {
+        $download_field = $section->get('field_download_app_button');
+        $download_app_button = [
+            'label' => $download_field->title ?? '',
+            'url' => $download_field->uri ?? '',
+        ];
+    }
+
+    // زر طلب الديمو
+    $request_demo_button = null;
+    if ($section->hasField('field_request_demo_button') && !$section->get('field_request_demo_button')->isEmpty()) {
+        $demo_field = $section->get('field_request_demo_button');
+        $request_demo_button = [
+            'label' => $demo_field->title ?? '',
+            'url' => $demo_field->uri ?? '',
+        ];
+    }
+
+    $data = [
+        'title' => $title,
+        'description' => $description,
+        'download_app_button' => $download_app_button,
+        'request_demo_button' => $request_demo_button,
+    ];
+
+    return array_filter($data, fn($v) => $v !== null && $v !== '' && $v !== []);
+}
+
+
 }
